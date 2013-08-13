@@ -89,22 +89,30 @@ def linearFit(y, z):
     
     return zfixed
 
-def getR(profile, linemin, linemax):
+def getR(profile, limits):
     ''' Reads every line of z(y), eliminates slope for each line separately 
         and computes the r value. Returns all results of r in one list. '''
     
     # Fetching grid from file
     xgrid, ygrid, zgrid = loadGrid(profile)
     
+    # Fetching dimensions of the array
+    xmax, ymax = xgrid.shape
+    
+    if (limits[1] == 0):
+        limits[1] = xmax
+    if (limits[3] == 0):
+        limits[3] = ymax
+    
     # Transposing y and z, because we're doing vertical measurements
     yT = np.transpose(ygrid)
     zT = np.transpose(zgrid)
     
     # Going through all lines
-    for i in range(linemin, linemax):
+    for i in range(limits[0], limits[1]):
         # Selecting the i-th line from each transposed array
-        y = yT[i]
-        z = zT[i]
+        y = yT[i][limits[2]:limits[3]]
+        z = zT[i][limits[2]:limits[3]]
         
         # Fitting with (^3, ^2, ^1) fit, can use linearFit() if necessary
         zfixed = multiFit(y, z)
@@ -114,21 +122,21 @@ def getR(profile, linemin, linemax):
         r = 1-(1/(1+dydz**2))**(0.5)
         
         # If first line, start r_total, else append
-        if i==linemin:
+        if i==limits[0]:
             r_total = r
         else:
             r_total = np.concatenate((r_total,r))
     
     return r_total 
 
-def getHistogram(filebase, linemin, linemax, bins, rangemax):
+def getHistogram(filebase, bins, rangemax, limits):
     ''' Filebase is the name of the folder, where the CSVs are. 
         Num is the number of CSVs that are to be parsed and put together.
         Bins is the number of bins to use when making a histogram. Returns 
         spacing (labels), hist (values), data (all r values in one list).'''
     
     # Getting all r values from file
-    data = getR(filebase, linemin, linemax)
+    data = getR(filebase, limits)
     
     # Creating the histogram    
     hist, rhist = np.histogram(data, bins=bins, range=(0, rangemax), density=True)
@@ -142,17 +150,16 @@ def getHistogram(filebase, linemin, linemax, bins, rangemax):
 bins = 25
 rangemax = 0.25
 namebase = '1200_3d_snp5_img'
-linemin = 10
-linemax = 50
+limits = [0,0,0,0] # [x_min, x_max, y_min, y_max], if max=0: no limit
 # ------ END PARAMETERS --
 
 # Get histogram for set number of bins 
-labels, values, data = getHistogram(namebase, linemin, linemax, bins, rangemax)
+labels, values, data = getHistogram(namebase, bins, rangemax, limits)
 
 # If there are gaps, find the maximum possible number of bins to not get them
 while not (values > 0).all():
     bins = bins-1
-    labels, values, data = getHistogram(namebase, linemin, linemax, bins, rangemax)
+    labels, values, data = getHistogram(namebase, bins, rangemax, limits)
     if bins==5:
         print('WARNING: Ideal bins are lower than 5, printing them anyway.')
         break
