@@ -3,7 +3,7 @@
 ''' Plot histogram of an entire 3D image and fit it with Weibull.''' 
 
 # ---------------- Imports
-from matplotlib.pyplot import *
+from matplotlib.pyplot import * #figure, clf, semilogy, grid, legend, subplot, text, savefig, show
 from scipy.optimize import leastsq
 
 import numpy as np
