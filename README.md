@@ -10,5 +10,7 @@ Coding style:
   * own functions in camelCase
   * variables in underscore_manner
   * every function should have a DOCSTRING (and explain unclear returns)
+  * upholding the PEP8 standard if possible
+    * validator here: http://pep8online.com/checkresult    
 
 Might help: http://i.imgur.com/WRuJV6r.png  
