@@ -222,4 +222,5 @@ text(0.84, 0.77,
 #Saving figure to disk
 savefig(namebase+'weib_comp.png', dpi=100)
 
+# Show the plot
 show()
