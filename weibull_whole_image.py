@@ -3,11 +3,10 @@
 '''Plot histogram of an entire 3D image and fit it with Weibull.'''
 
 # ---------------- Imports
-from matplotlib.pyplot import *
-from scipy.optimize import leastsq
-
+import matplotlib.pyplot as plt
 import numpy as np
-import pep8
+
+from scipy.optimize import leastsq
 
 
 # ---------------- Statistics
@@ -197,16 +196,16 @@ print('Sigma is: '+str(sigma_ret))
 print('Eta is: '+str(eta_ret))
 
 # Plot it
-figure(1)
-clf()
+plt.figure(1)
+plt.clf()
 
 # Plot in log scale
-semilogy(labels, values, labels, pWeibull(labels, sigma_ret, eta_ret))
-grid()
-legend(('Expt', 'Best fit'))
+plt.semilogy(labels, values, labels, pWeibull(labels, sigma_ret, eta_ret))
+plt.grid()
+plt.legend(('Expt', 'Best fit'))
 
 # Creating dual X axis
-ax1 = subplot(111)
+ax1 = plt.subplot(111)
 ax2 = ax1.twiny()
 
 # Setting proper labels
@@ -226,7 +225,7 @@ ax2.set_xlabel(r"$\phi$")
 ax2.set_xlim((0, rangemax))
 
 # Printing sigma and eta onto the plot
-text(0.87, 0.82,
+plt.text(0.87, 0.82,
      r'$\sigma$: %.3f $\eta$: %.3f' % (sigma_ret, eta_ret),
      fontsize=12,
      horizontalalignment='center',
@@ -234,7 +233,7 @@ text(0.87, 0.82,
      transform=ax1.transAxes)
 
 # Printing bins and mean onto the plot
-text(0.84, 0.77,
+plt.text(0.84, 0.77,
      r'mean: %.3f bins: %i' % (total_mean, bins),
      fontsize=12,
      horizontalalignment='center',
@@ -242,7 +241,7 @@ text(0.84, 0.77,
      transform=ax1.transAxes)
 
 #Saving figure to disk
-savefig(namebase+'weib_comp.png', dpi=100)
+plt.savefig(namebase+'weib_comp.png', dpi=100)
 
 # Show the plot
-show()
+plt.show()
