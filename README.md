@@ -10,3 +10,5 @@ Coding style:
   * own functions in camelCase
   * variables in underscore_manner
   * every function should have a DOCSTRING (and explain unclear returns)
+
+Might help: http://i.imgur.com/WRuJV6r.png  
