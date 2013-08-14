@@ -13,4 +13,5 @@ Coding style:
   * upholding the PEP8 standard if possible
     * validator here: http://pep8online.com/checkresult    
 
-Might help: http://i.imgur.com/WRuJV6r.png  
+My code isn't working: 
+  * http://i.imgur.com/WRuJV6r.png  
