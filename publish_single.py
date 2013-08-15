@@ -47,50 +47,26 @@ data = readArray(profile+'.csv', mydescr)
 zfixed = multiFit(data.x, data.z)
 
 # Plot profile
-plt.plot(data.x, zfixed)
-plt.savefig(profile+'_p.png', dpi=100)
-plt.show()
+fig = plt.figure()
+ax1 = fig.add_subplot(2, 1, 1)
+ax1.plot(data.x, zfixed)
+ax1.set_xlabel(r"y")
+ax1.set_ylabel(r"z(y)")
+#plt.savefig(profile+'_p.png', dpi=100)
+#plt.show()
 
 # Getting the slope in every point
 dydz = np.diff(zfixed)/np.diff(data.x)
 r = 1-(1/(1+dydz**2))**(0.5)
 
 # Plot r
-plt.figure(2)
-plt.clf()  # name figure, clear plot
-plt.plot(data.x[1:], r)
-plt.savefig(profile+'_r.png', dpi=100)
+#plt.figure(2)
+#plt.clf()  # name figure, clear plot
+ax2 = fig.add_subplot(2, 1, 2)
+ax2.plot(data.x[1:], r)
+ax2.set_xlabel(r"y")
+ax2.set_ylabel(r"r(y)")
+plt.savefig(profile+'_publish.png', dpi=100)
 plt.show()
 
 print("The mean is: "+str(np.mean(r)))
-
-hist, rhist = np.histogram(r, bins=40, range=(0, 0.25), density=True)
-
-# Plot histogram
-fig = plt.figure(3)
-plt.clf()  # name figure, clear plot
-plt.plot(rhist[:-1], hist)
-
-# Creating dual X axis
-ax1 = plt.subplot(111)
-ax2 = ax1.twiny()
-
-# Setting proper labels
-ax1.set_xlabel(r"$r$")
-
-# Setting up functions to convert r <---> phi
-r_to_phi = lambda x: 180*np.arccos(1-x)/np.pi
-phi_to_r = lambda x: 1 - np.cos((x*np.pi) / 180)
-
-new_tick_locations = phi_to_r(np.array([5, 10, 15, 20, 25, 30, 35, 40]))
-
-tick_function = lambda x: ["%.0f" % z for z in r_to_phi(x)]
-
-ax2.set_xticks(new_tick_locations)
-ax2.set_xticklabels(tick_function(new_tick_locations))
-ax2.set_xlabel(r"$\phi$")
-ax2.set_xlim((0, 0.25))
-
-# Plot and save file
-plt.savefig(profile+'_h.png', dpi=100)
-plt.show()
