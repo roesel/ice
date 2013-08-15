@@ -11,7 +11,7 @@ Coding style:
   * variables in underscore_manner
   * every function should have a DOCSTRING (and explain unclear returns)
   * upholding the PEP8 standard if possible
-    * validator here: http://pep8online.com/checkresult    
+    * validator here: http://pep8online.com/
 
 My code isn't working: 
   * http://i.imgur.com/WRuJV6r.png  

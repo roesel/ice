@@ -5,6 +5,7 @@
 # ---------------- Imports
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from scipy.optimize import leastsq
 
@@ -33,7 +34,7 @@ def residuals(p, y, r):
     return err
 
 
-# ---------------- File importing
+# ---------------- File handling
 def readArray(filename, dtype, separator=','):
     ''' (not ours) Read a file with an arbitrary number of columns. The type
         of data in each column is also arbitrary - it will be cast to the
@@ -73,6 +74,24 @@ def loadGrid(profile):
     zgrid = data['z'].reshape(Nx, Ny)
 
     return xgrid, ygrid, zgrid
+
+
+def logIntoRegister(filename, data):
+    ''' Logs parameters of current run into file at address "filename". If file
+        doesn't exist, it will be created and added headers.'''
+
+    # Add content to a new line
+    contents = "\n"+','.join(map(str, data))
+
+    # If file doesn't exist, include appropriate headers
+    if not os.path.isfile(filename):
+        headers = "Namebase,Sigma,Eta,Mean,Bins,Datasize,Rangemax"
+        contents = headers + contents
+
+    # Open and append into file
+    g = open(filename, "a")  # Opening file to write into
+    g.write(contents)
+    g.close()
 
 
 # ---------------- Histogram
@@ -164,6 +183,9 @@ bins = 25
 rangemax = 0.25
 namebase = '1200_3d_snp5_img'
 limits = [0, 0, 0, 0]  # [x_min, x_max, y_min, y_max], if max=0: no limit
+log_into_register = False  # Turn on/off if results should be logged
+register_path = 'C:\ice_register.csv'
+
 # ------ END PARAMETERS --
 
 # Get histogram for set number of bins
@@ -226,22 +248,28 @@ ax2.set_xlim((0, rangemax))
 
 # Printing sigma and eta onto the plot
 plt.text(0.87, 0.82,
-     r'$\sigma$: %.3f $\eta$: %.3f' % (sigma_ret, eta_ret),
-     fontsize=12,
-     horizontalalignment='center',
-     verticalalignment='center',
-     transform=ax1.transAxes)
+         r'$\sigma$: %.3f $\eta$: %.3f' % (sigma_ret, eta_ret),
+         fontsize=12,
+         horizontalalignment='center',
+         verticalalignment='center',
+         transform=ax1.transAxes)
 
 # Printing bins and mean onto the plot
 plt.text(0.84, 0.77,
-     r'mean: %.3f bins: %i' % (total_mean, bins),
-     fontsize=12,
-     horizontalalignment='center',
-     verticalalignment='center',
-     transform=ax1.transAxes)
+         r'mean: %.3f bins: %i' % (total_mean, bins),
+         fontsize=12,
+         horizontalalignment='center',
+         verticalalignment='center',
+         transform=ax1.transAxes)
 
-#Saving figure to disk
+# Saving figure to disk
 plt.savefig(namebase+'weib_comp.png', dpi=100)
+
+# If asked to, log into register
+if (log_into_register):
+    logIntoRegister(register_path,
+                    [namebase, sigma_ret, eta_ret, total_mean,
+                     bins, data.size, rangemax])
 
 # Show the plot
 plt.show()
