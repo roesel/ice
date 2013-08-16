@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''Load single-measurement CSV file and plot profile, r and r distribution.'''
+'''Load five CSV files and plot profiles and r into two subplots to compare.'''
 
 # ---------------- Imports
 import numpy as np
@@ -48,37 +48,53 @@ def linearFit(y, z):
     return zfixed
 
 # -- BEGIN PARAMETERS ----
-profile = '1048_3d_snapshot3_p0'
+profile = '1200_3d_snp5_p'
 # ------ END PARAMETERS --
 
-# Load data from a single CSV into array
-mydescr = np.dtype([('x', 'float32'), ('z', 'float32')])  # ('y', 'float32'),
-data = readArray(profile+'.csv', mydescr)
-
-# Fitting with (^3, ^2, ^1) fit, can use linearFit() if necessary
-zfixed = multiFit(data.x, data.z)
-
-# Plot profile
+# Create the figure
 fig = plt.figure()
+
+# Create "profile" subplot
 ax1 = fig.add_subplot(2, 1, 1)
-ax1.plot(data.x, zfixed)
-ax1.set_xlabel(r"y")
-ax1.set_ylabel(r"z(y)")
-#plt.savefig(profile+'_p.png', dpi=100)
-#plt.show()
 
-# Getting the slope in every point
-dydz = np.diff(zfixed)/np.diff(data.x)
-r = 1-(1/(1+dydz**2))**(0.5)
-
-# Plot r
-#plt.figure(2)
-#plt.clf()  # name figure, clear plot
+# Create "r" subplot
 ax2 = fig.add_subplot(2, 1, 2)
-ax2.plot(data.x[1:], r)
-ax2.set_xlabel(r"y")
-ax2.set_ylabel(r"r(y)")
-plt.savefig(profile+'_publish.png', dpi=100)
-plt.show()
 
-print("The mean is: "+str(np.mean(r)))
+# Plot 5 different profiles and r values into two subplots
+for i in range(1, 6):
+    # Load data from a single CSV into array
+    mydescr = np.dtype([('x', 'float32'), ('z', 'float32')])
+    data = readArray(profile+str(i)+'.csv', mydescr)
+
+    # Fitting with (^3, ^2, ^1) fit, can use linearFit() if necessary
+    zfixed = multiFit(data.x, data.z)
+
+    # Getting the slope in every point
+    dydz = np.diff(zfixed)/np.diff(data.x)
+    r = 1-(1/(1+dydz**2))**(0.5)
+
+    # Transposing each profile by a bit
+    zfixed = zfixed + (i - 1)*4
+    data.x = data.x + (i)*20
+
+    # Transposing r by a bit each time
+    r = r + (i - 1)*0.4
+
+    # Plot profile
+    ax1.plot(data.x, zfixed)
+
+    # Plot r
+    ax2.plot(data.x[1:], r)
+
+# Setting appropriate labels for all subplots
+ax1.set_xlabel(r"y $[  \mu m]$")
+ax1.set_ylabel(r"z $[  \mu m]$")
+
+ax2.set_xlabel(r"y $[  \mu m]$")
+ax2.set_ylabel(r"r(y)")
+
+ax2.set_ylim((0, 2))
+
+# Saving figure to disk
+plt.savefig(profile+'ublish.png', dpi=100)
+plt.show()
