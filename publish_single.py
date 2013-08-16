@@ -29,14 +29,26 @@ def multiFit(y, z):
     ''' Will fit and substract a z baseline from all values in one line.
         Returns leveled z-line values. '''
 
-    pfit = np.polyfit(y, np.ones(y.size), 3)
+    pfit = np.polyfit(y, z, 3)
     zbaseline = np.polyval(pfit, y)
     zfixed = z-zbaseline
 
     return zfixed
 
+
+def linearFit(y, z):
+    ''' Older way of linear fit that is substracted from all z values in line.
+        Returns leveled z-line values. '''
+    # Fitting with linearly generated sequence
+    A = np.array([y, np.ones(y.size)])
+    w = np.linalg.lstsq(A.T, z)[0]  # obtaining the parameters
+    zline = w[0]*y+w[1]
+    zfixed = z-zline  # substracting baseline from every point
+
+    return zfixed
+
 # -- BEGIN PARAMETERS ----
-profile = '1200_3d_snp5_p2'
+profile = '1048_3d_snapshot3_p0'
 # ------ END PARAMETERS --
 
 # Load data from a single CSV into array

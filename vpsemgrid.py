@@ -52,22 +52,34 @@ def loadGrid(profile):
     return xgrid, ygrid, zgrid
 
 
+def multiFit(y, z):
+    ''' Will fit and substract a z baseline from all values in one line.
+        Returns leveled z-line values. '''
+
+    pfit = np.polyfit(y, z, 1)
+    zbaseline = np.polyval(pfit, y)
+    zfixed = z-zbaseline
+
+    return zfixed
+
+# -- BEGIN PARAMETERS ----
+profile = "1200_3d_snp5_img"
+# ------ END PARAMETERS --
+
 # Get the data
-xgrid, ygrid, zgrid = loadGrid("1200_3d_snp5_img")
+xgrid, ygrid, zgrid = loadGrid(profile)
 
 # Select a subset to focus on
 Nx, Ny = xgrid.shape
 nxstart = 100
-nxend = 300  # Have to display a subset because it's too dense
-nystart = 200
+nxend = 101  # Have to display a subset because it's too dense
+nystart = 0
 nyend = 640
 
 # Massage it a bit
 zgrid_s = np.zeros(zgrid.shape)
 for j in range(Nx):
-    pfit = np.polyfit(ygrid[:, 0], zgrid[:, j], 3)
-    zbaseline = np.polyval(pfit, ygrid[:, 0])
-    zgrid_s[:, j] = zgrid[:, j]-zbaseline
+    zgrid_s[:, j] = multiFit(ygrid[:, 0], zgrid[:, j])
 
 # Graph it in 2d
 fignum = 1
@@ -97,9 +109,10 @@ for j in range(nxstart, nxend, 4):
 plt.xlabel(r'Z ($\mu$m)')  # Label the x axis
 plt.ylabel(r'Y ($\mu$m)')  # Label the y axis
 plt.grid()
+#plt.savefig(profile+'_vpsemgrid_1d.png', dpi=100)
 plt.show()  # Make python display the graph
 
-# Save the results
-np.savetxt('xgrid.txt', xgrid)
-np.savetxt('ygrid.txt', ygrid)
-np.savetxt('zgrid.txt', zgrid_s)
+## Save the results
+#np.savetxt('xgrid.txt', xgrid)
+#np.savetxt('ygrid.txt', ygrid)
+#np.savetxt('zgrid.txt', zgrid_s)

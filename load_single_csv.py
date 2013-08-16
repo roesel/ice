@@ -29,7 +29,7 @@ def multiFit(y, z):
     ''' Will fit and substract a z baseline from all values in one line.
         Returns leveled z-line values. '''
 
-    pfit = np.polyfit(y, np.ones(y.size), 3)
+    pfit = np.polyfit(y, z, 3)
     zbaseline = np.polyval(pfit, y)
     zfixed = z-zbaseline
 

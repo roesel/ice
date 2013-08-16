@@ -99,7 +99,7 @@ def multiFit(y, z):
     ''' Will fit and substract a z baseline from all values in one line.
         Returns leveled z-line values. '''
 
-    pfit = np.polyfit(y, np.ones(y.size), 3)
+    pfit = np.polyfit(y, z, 3)
     zbaseline = np.polyval(pfit, y)
     zfixed = z-zbaseline
 
@@ -181,7 +181,7 @@ def getHistogram(filebase, bins, rangemax, limits):
 # -- BEGIN PARAMETERS ----
 bins = 25
 rangemax = 0.25
-namebase = '1200_3d_snp5_img'
+namebase = '1110_3d_snp9'
 limits = [0, 0, 0, 0]  # [x_min, x_max, y_min, y_max], if max=0: no limit
 log_into_register = False  # Turn on/off if results should be logged
 register_path = 'C:\ice_register.csv'
