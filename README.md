@@ -13,5 +13,8 @@ Coding style:
   * upholding the PEP8 standard if possible
     * validator here: http://pep8online.com/
 
+Ice links:
+  * Vapor pressure: http://www2.bren.ucsb.edu/~dturney/WebResources_13/WaterSteamIceProperties/VaporPressureICEvsTemp.pdf
+
 My code isn't working: 
   * http://i.imgur.com/WRuJV6r.png  
