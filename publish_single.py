@@ -48,7 +48,7 @@ def linearFit(y, z):
     return zfixed
 
 # -- BEGIN PARAMETERS ----
-profile = '1200_3d_snp5_p'
+profile = '1048_3d_snapshot3_p'
 # ------ END PARAMETERS --
 
 # Create the figure
@@ -73,9 +73,11 @@ for i in range(1, 6):
     dydz = np.diff(zfixed)/np.diff(data.x)
     r = 1-(1/(1+dydz**2))**(0.5)
 
-    # Transposing each profile by a bit
+    # Transposing up-down each profile by a bit
     zfixed = zfixed + (i - 1)*4
-    data.x = data.x + (i)*20
+
+    # Left-right offset, can be commented out to start working again
+    #data.x = data.x + (i)*20
 
     # Transposing r by a bit each time
     r = r + (i - 1)*0.4
