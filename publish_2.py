@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''Load five CSV files and plot profiles and r into two subplots to compare.'''
+'''Load five CSV files and plot profiles and r into two subplots to compare.
+   This is the script used for the planned figure 2.'''
 
 # ---------------- Imports
 import numpy as np
