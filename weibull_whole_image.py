@@ -6,7 +6,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-
+from mpl_toolkits.mplot3d import axes3d
 from scipy.optimize import leastsq
 
 
@@ -118,7 +118,7 @@ def linearFit(y, z):
     return zfixed
 
 
-def getR(profile, limits):
+def getRold(profile, limits):
     ''' Reads every line of z(y), eliminates slope for each line separately
         and computes the r value. Returns all results of r in one list. '''
 
@@ -138,10 +138,10 @@ def getR(profile, limits):
     zT = np.transpose(zgrid)
 
     # Going through all lines
-    for i in range(limits[0], limits[1]):
+    for i in range(limits[2], limits[3]):
         # Selecting the i-th line from each transposed array
-        y = yT[i][limits[2]:limits[3]]
-        z = zT[i][limits[2]:limits[3]]
+        y = yT[i][limits[0]:limits[1]]
+        z = zT[i][limits[0]:limits[1]]
 
         # Fitting with (^3, ^2, ^1) fit, can use linearFit() if necessary
         zfixed = multiFit(y, z)
@@ -158,6 +158,118 @@ def getR(profile, limits):
 
     return r_total
 
+def getR(profile, limits):
+    ''' Reads every line of z(y), eliminates slowly-changing behavior for the entire surface
+        and computes the r value. Returns all results of r in one list. '''
+
+    # Fetching grid from file
+    xgrid, ygrid, zgrid = loadGrid(profile)
+
+    # Fetching dimensions of the array
+    xmax, ymax = xgrid.shape
+
+    if (limits[1] == 0):
+        limits[1] = xmax
+    if (limits[3] == 0):
+        limits[3] = ymax
+
+    # Transposing y and z, because we're doing vertical measurements
+    xT = np.transpose(xgrid)
+    yT = np.transpose(ygrid)
+    zT = np.transpose(zgrid)
+
+    # Get a smoothed version
+    x1d = xT[:,0]
+    y1d = yT[0,:]
+    zTsmooth = polysmooth(xT,yT,zT,6,6)
+    zTfixed = zT-zTsmooth
+    zfixed = np.transpose(zTfixed)
+
+    # Going through all lines
+    for i in range(limits[2], limits[3]):
+        # Selecting the i-th line from each transposed array
+        y = yT[i][limits[0]:limits[1]]
+        zTfixed_line = zTfixed[i][limits[0]:limits[1]]
+
+        # Getting the slope in every point
+        dydz = np.diff(zTfixed_line)/np.diff(y)  # Note: try reversing this? dz/dy?
+        r = 1-(1/(1+dydz**2))**(0.5)
+
+        # If first line, start r_total, else append
+        if (i == limits[0]):
+            r_total = r
+        else:
+            r_total = np.concatenate((r_total, r))
+    
+    # Display the results of 1-d slices
+    Nx, Ny = np.shape(zfixed)
+    j = int(Ny/2)
+    i = int(Nx/2)
+
+    fignum = 10
+    plt.close(fignum)
+    plt.figure(fignum)
+    plt.plot(x1d,zT[:,j],x1d,zTsmooth[:,j])
+    plt.xlabel('x')
+    plt.legend(['original','smoothed'])
+    plt.show()
+
+    fignum = 11
+    plt.close(fignum)
+    plt.figure(fignum)
+    plt.plot(y1d,zT[i,:],y1d,zTsmooth[i,:])
+    plt.xlabel('z')
+    plt.legend(['original','smoothed'])
+    plt.show()
+
+    fignum = 12
+    plt.close(fignum)
+    plt.figure(fignum)
+    plt.plot(y1d,zTfixed[i,:])
+    plt.xlabel('z')
+    #plt.xlim([270, 310])
+    plt.legend(['fixed, const x'])
+    plt.show()
+
+    fignum = 13
+    plt.close(fignum)
+    plt.figure(fignum)
+    plt.plot(x1d,zTfixed[:,j])
+    plt.xlabel('x')
+    #plt.xlim([200, 240])
+    plt.legend(['fixed, const z'])
+    plt.show()
+
+
+    return r_total, zfixed, xgrid, ygrid
+
+def polysmooth(x,y,z,NI,NJ):
+
+    # size of the incoming array
+    Nx, Ny = np.shape(z)
+    x1d = x[:,0]
+    y1d = y[0,:]
+
+    # Get the C coefficients
+    #NI = 7
+    CIj = np.zeros((NI,Ny))
+    for j in range (Ny):
+        CIj[:,j] = np.flipud(np.polyfit(x1d,z[:,j],NI-1))
+
+    # Get the D coefficients
+    #NJ = 7
+    DIJ = np.zeros((NI,NJ))
+    for I in range (NI):
+        DIJ[I,:] = np.flipud(np.polyfit(y1d,CIj[I,:],NJ-1))
+    
+    # Reconstruct the entire surface
+    zsmooth = np.zeros((Nx,Ny))
+    for I in range(NI):
+        for J in range(NJ):    
+            zsmooth += DIJ[I,J]*x**I*y**J
+
+    return zsmooth
+ 
 
 def getHistogram(filebase, bins, rangemax, limits):
     ''' Filebase is the name of the folder, where the CSVs are.
@@ -166,7 +278,7 @@ def getHistogram(filebase, bins, rangemax, limits):
         spacing (labels), hist (values), data (all r values in one list).'''
 
     # Getting all r values from file
-    data = getR(filebase, limits)
+    data, zfixed, xgrid, ygrid = getR(filebase, limits)
 
     # Creating the histogram
     hist, rhist = np.histogram(data, bins=bins, range=(0, rangemax),
@@ -175,13 +287,14 @@ def getHistogram(filebase, bins, rangemax, limits):
     # Making our own spacing - middle of all intervals.
     spacing = rhist[1:]-(rhist[1]-rhist[0])/2
 
-    return spacing, hist, data
+    return spacing, hist, data, zfixed, xgrid, ygrid 
 
 
 # -- BEGIN PARAMETERS ----
 bins = 25
 rangemax = 0.25
 namebase = '1110_3d_snp9'
+namebase = '1200_3d_snp5_img'
 limits = [0, 0, 0, 0]  # [x_min, x_max, y_min, y_max], if max=0: no limit
 log_into_register = False  # Turn on/off if results should be logged
 register_path = 'C:\ice_register.csv'
@@ -189,7 +302,7 @@ register_path = 'C:\ice_register.csv'
 # ------ END PARAMETERS --
 
 # Get histogram for set number of bins
-labels, values, data = getHistogram(namebase, bins, rangemax, limits)
+labels, values, data, zfixed, xgrid, ygrid = getHistogram(namebase, bins, rangemax, limits)
 
 # If there are gaps, find the maximum possible number of bins to not get them
 while not (values > 0).all():
@@ -217,8 +330,9 @@ eta_ret = plsq[0][1]
 print('Sigma is: '+str(sigma_ret))
 print('Eta is: '+str(eta_ret))
 
-# Plot it
-plt.figure(1)
+# Plot it (first figure)
+fignum = 1
+plt.figure(fignum)
 plt.clf()
 
 # Plot in log scale
@@ -262,6 +376,10 @@ plt.text(0.84, 0.77,
          verticalalignment='center',
          transform=ax1.transAxes)
 
+plt.show()
+
+
+
 # Saving figure to disk
 plt.savefig(namebase+'weib_comp.png', dpi=100)
 
@@ -271,5 +389,32 @@ if (log_into_register):
                     [namebase, sigma_ret, eta_ret, total_mean,
                      bins, data.size, rangemax])
 
-# Show the plot
+# Display results as a mesh
+fignum += 1
+plt.close(fignum)
+Nx, Ny = np.shape(zfixed)
+i = int(Nx/2)
+j = int(Ny/2)
+
+x1=i-20; x2=i+20; y1=j-20; y2=j+20
+ax = plt.figure(fignum).gca(projection='3d') # Set up a three dimensional graphics window 
+ax.plot_surface(xgrid[y1:y2,x1:x2],ygrid[y1:y2,x1:x2],zfixed[y1:y2,x1:x2],rstride=1,cstride=1) # Make the mesh plot
+#ax.plot_wireframe(xgrid[y1:y2,x1:x2],ygrid[y1:y2,x1:x2],zfixed[y1:y2,x1:x2],rstride=1,cstride=1) # Make the mesh plot
+ax.set_xlabel('x ($\mu$m)') # Label axes
+ax.set_ylabel('z ($\mu$m)')
+ax.set_zlabel('y ($\mu$m)')
 plt.show()
+
+# Saving figure to disk
+plt.savefig(namebase+'surface.png', dpi=200)
+
+
+
+
+#plt.pcolor(xgrid[y1:y2,x1:x2],ygrid[y1:y2,x1:x2],zfixed[y1:y2,x1:x2])
+#plt.colorbar()
+#plt.title("After subtracting baseline")
+#plt.xlabel('x')
+#plt.ylabel('y')
+#plt.show()
+
